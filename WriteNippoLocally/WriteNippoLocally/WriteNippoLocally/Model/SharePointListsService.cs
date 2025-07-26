@@ -34,7 +34,7 @@ namespace WriteNippoLocally.Model
             //viewIdを取得
             string? viewId = null;
             var prams = HttpUtility.ParseQueryString(uri.Query);
-            foreach (string key in prams.AllKeys)
+            foreach (string? key in prams.AllKeys)
             {
                 if (key == "viewid")
                 {
