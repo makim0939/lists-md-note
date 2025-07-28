@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:WriteNippoLocally"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="720" FontSize="13"
+        Loaded="OnWindowLoaded"
         Activated="OnWindowActivated"
         Deactivated="OnWindowDeactived"
 >

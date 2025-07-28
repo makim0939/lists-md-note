@@ -19,6 +19,8 @@ namespace WriteNippoLocally.ViewModel
         public DateTime SelectedDate { get; set; } = DateTime.Now; // 選択されている日付
         public string FilePath { get; set; } = "";
 
+        private SharePointListsService ListsService { get; set; }
+
         //コマンド
         public DelegateCommand SendDailyReport { get; set; }
         public DelegateCommand StoreMdFile { get; set; }
@@ -29,15 +31,27 @@ namespace WriteNippoLocally.ViewModel
         public MainWindowVM()
         {
             // 設定ファイルにSiteUrlとDestDirectoryがなければ初期設定ウィンドウを表示
-            UserSettings userSettings = UtilsService.GetUserSettings();
-            if(userSettings.SiteUrl == string.Empty || userSettings.DestDirectory == string.Empty)
+            UserSettings userSettings = UserSettings.GetUserSettings();
+            if (userSettings.SiteUrl == string.Empty || userSettings.DestDirectory == string.Empty)
             {
                 InitSettingDialog dialog = new();
                 bool? result = dialog.ShowDialog();
             }
 
+            // コマンドを追加
+            SendDailyReport = new DelegateCommand(SendDailyReportExecute);
+            StoreMdFile = new DelegateCommand(StoreMdFileExecute);
+        }
+
+        // 非同期初期化
+        // MainWindowのLoadedイベントハンドラから呼び出す。
+        // コンストラクタで非同期処理を行えないため。
+        public async Task InitializeAsync()
+        {
+            ListsService = await SharePointListsService.CreateAsync();
+
             // フィールド情報のみからDailyReportModelインスタンスを作成
-            DailyReportModel report = SharePointListsService.GetReportFields();
+            DailyReportModel report = ListsService.GetReportFields();
 
             // mdファイル読み込み。なければ新規作成
             DateFileMapSettings dateFileMap = GetDateFileMapSettings();
@@ -73,7 +87,7 @@ namespace WriteNippoLocally.ViewModel
             }
 
             // 今日のListsアイテムを読み込みReportに反映する
-            DailyReportModel? todayReport = SharePointListsService.GetMyReport(DateTime.Now);
+            DailyReportModel? todayReport = ListsService.GetMyReport(DateTime.Now);
             if (todayReport != null)
             {
                 // 空のセクションがあれば、アイテムの内容を反映
@@ -88,23 +102,23 @@ namespace WriteNippoLocally.ViewModel
 
             Report.Add(report);
 
-            // コマンドを追加
-            SendDailyReport = new DelegateCommand(SendDailyReportExecute);
-            StoreMdFile = new DelegateCommand(StoreMdFileExecute);
         }
 
         private void SendDailyReportExecute()
         {
-            Report[0].Id = SharePointListsService.Send(Report[0]);
+            if (Report.Count == 0) return;
+            Report[0].Id = ListsService.Send(Report[0]);
         }
 
         public void StoreMdFileExecute()
         {
+            if (Report.Count == 0) return;
             MarkdownFileService.storeMdFile(Report[0], this.FilePath);
         }
 
         public void ReadMdFileExecute()
         {
+            if (Report.Count == 0) return;
             DailyReportModel report = MarkdownFileService.ReadMdFile(Report[0], this.FilePath);
             this.Report.Remove(Report[0]);
             this.Report.Add(report);

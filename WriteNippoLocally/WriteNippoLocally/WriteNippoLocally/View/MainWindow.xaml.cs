@@ -26,6 +26,14 @@ namespace WriteNippoLocally
             InitializeComponent();
             this.DataContext = new MainWindowVM();
         }
+        
+        private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
+        {
+            MainWindowVM vm = (MainWindowVM)DataContext;
+            if (vm == null) return;
+            await vm.InitializeAsync();
+        }
+
 
         // MainWindowのActivatedイベントハンドラ
         private void OnWindowActivated(object? sender, EventArgs e)
