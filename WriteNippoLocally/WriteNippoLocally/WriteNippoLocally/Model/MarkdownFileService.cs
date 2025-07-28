@@ -103,7 +103,7 @@ namespace WriteNippoLocally.Model
                     switch (section.Type)
                     {
                         case "Text":
-                            section.Content = section.Content.Replace("\n", " ");
+                            section.Content = section.Content.Replace("\n", "");
                             break;
                         case "Note":
                             section.Content = section.Content.TrimEnd('\n');
