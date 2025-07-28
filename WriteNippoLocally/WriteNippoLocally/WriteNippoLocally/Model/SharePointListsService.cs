@@ -1,119 +1,105 @@
-﻿using View = Microsoft.SharePoint.Client.View;
-using Microsoft.SharePoint.Client;
-using PnP.PowerShell.Commands.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using CamlBuilder;
-using Microsoft.SharePoint.Client.Search.Query;
-using System.Web;
+﻿using Microsoft.SharePoint.Client;
 
 namespace WriteNippoLocally.Model
 {
     // SharePointへの接続、リストの取得・送信を行う。
-    static class SharePointListsService
+    class SharePointListsService
     {
-        private static ClientContext context;
-        private static User loginUser;
-        private static List list;
-        private static Microsoft.SharePoint.Client.View view;
+        private ClientContext Context { get; set; }
+        private User LoginUser { get; set; }
+        private List TargetList { get; set; }
+        private Microsoft.SharePoint.Client.View TargetView { get; set; }
 
-        static SharePointListsService()
+        private SharePointListsService(ClientContext context)
         {
+            Context = context;
 
-            UserSettings userSetting = UtilsService.GetUserSettings();
+            UserSettings settings = UserSettings.GetUserSettings();
 
-            Uri uri = new Uri(userSetting.SiteUrl);
-            string siteUrl = uri.AbsoluteUri.Split("Lists")[0];
-            string sitePath = uri.AbsolutePath;
-
-            //viewIdを取得
-            string? viewId = null;
-            var prams = HttpUtility.ParseQueryString(uri.Query);
-            foreach (string? key in prams.AllKeys)
-            {
-                if (key == "viewid")
-                {
-                    viewId = prams[key];
-                }
-            }
-
-            // SharePointに接続
-            context = BrowserHelper.GetWebLoginClientContext(siteUrl, true);
-            loginUser = context.Web.CurrentUser;
-            context.Load(loginUser);
-            context.ExecuteQuery();
+            // ユーザを取得
+            User loginUser = Context.Web.CurrentUser;
+            Context.Load(loginUser);
+            Context.ExecuteQuery();
 
             // リストを取得
-            list = context.Web.GetList(sitePath);
-            context.Load(list);
-            context.ExecuteQuery();
+            List list = Context.Web.GetList(settings.GetSitePath());
+            Context.Load(list);
+            Context.ExecuteQuery();
+
+            
+            //viewIdを取得
+            string? viewId = settings.GetViewId();
 
             // ビューを取得
             ViewCollection views = list.Views;
-            context.Load(views);
-            context.ExecuteQuery();
-            view = viewId != null ? views.GetById(Guid.Parse(viewId)) : views[0];
+            Context.Load(views);
+            Context.ExecuteQuery();
+            Microsoft.SharePoint.Client.View view = viewId != null ? views.GetById(Guid.Parse(viewId)) : views[0];
+
+            LoginUser = loginUser;
+            TargetList = list;
+            TargetView = view;
+
         }
 
-
-
-        public static DailyReportModel GetReportFields()
+        // 非同期初期化
+        // new SharePointListsService()の代わりにSharePointListsService.CreateAsync()でインスタンスを取得する
+        public static async Task<SharePointListsService> CreateAsync()
         {
-            CamlQuery query = CamlQuery.CreateAllItemsQuery();
-            DailyReportModel? report = GetReport(query);
-            if (report == null)
-            {
-                throw new Exception("リストにアイテムが存在しません。");
-            }
+            UserSettings userSettings = UserSettings.GetUserSettings();
+            ClientContext context = await SharePointAuthService.ExecuteDeviceCodeAuth(userSettings.GetSharePointUrl());
+            //ClientContext context = SharePointAuthService.ExecuteAuth(userSettings.SiteUrl);
 
+            var listsService = new SharePointListsService(context);
+
+            return listsService;
+        }
+
+        public DailyReportModel GetReportFields()
+        {
             // リストに含まれるフィールドを取得
-            FieldCollection fields = list.Fields;
-            context.Load(fields);
-            context.ExecuteQuery();
+            FieldCollection fields = TargetList.Fields;
+            Context.Load(fields);
+            Context.ExecuteQuery();
 
             // ビューに含まれるフィールドを取得
-            ViewFieldCollection? viewFields = view.ViewFields;
-            context.Load(viewFields);
-            context.ExecuteQuery();
+            ViewFieldCollection? viewFields = TargetView.ViewFields;
+            Context.Load(viewFields);
+            Context.ExecuteQuery();
 
             //　記入に必要なフィールドを抽出し、中身を初期化
             DailyReportModel reportFieldOnly = new DailyReportModel();
             foreach (string viewField in viewFields)
             {
-                Field field = fields.GetByTitle(viewField);
+                Field field = fields.GetFieldByInternalName(viewField);
                 ReportField reportField = new();
                 if (field.Title == "登録者" || field.Title == "日付")
                 {
                     continue;
                 }
-                if (field.Title == "気分")
-                {
-                    FieldChoice choiceField = context.CastTo<FieldChoice>(field);
-                    reportField.Title = "気分";
-                    reportField.InternalName = field.InternalName;
-                    reportField.Title = field.Title;
-                    reportField.Content = "ノリノリ";
-                    reportField.Choices = [.. choiceField.Choices];
-                    continue;
-                }
 
                 if (field.TypeAsString == "DateTime")
                 {
+                    reportField.Title = field.Title;
+                    reportField.InternalName = field.InternalName;
                     reportField.Content = DateTime.Now.ToString("yyyy-MM-dd");
+                    reportField.Type = field.TypeAsString;
                 }
                 else if (field.TypeAsString == "Choice")
                 {
-                    FieldChoice choiceField = context.CastTo<FieldChoice>(field);
-                    reportField.Content = choiceField.Choices[0];
+                    FieldChoice choiceField = Context.CastTo<FieldChoice>(field);
+                    reportField.Title = field.Title;
+                    reportField.InternalName = field.InternalName;
+                    reportField.Content = choiceField.DefaultValue;
+                    reportField.Choices = [.. choiceField.Choices];
+                    reportField.Type = field.TypeAsString;
                 }
                 else
                 {
+                    reportField.Title = field.Title;
+                    reportField.InternalName = field.InternalName;
                     reportField.Content = string.Empty;
+                    reportField.Type = field.TypeAsString;
                 }
                 reportFieldOnly.Fields.Add(reportField);
             }
@@ -121,8 +107,8 @@ namespace WriteNippoLocally.Model
             return reportFieldOnly;
         }
 
-        // 今日の自分のアイテムを取得する。
-        public static DailyReportModel? GetMyReport(DateTime date)
+        // 今日の自分のアイテムを取得する
+        public DailyReportModel? GetMyReport(DateTime date)
         {
 
             // 著者と日付を指定
@@ -130,21 +116,30 @@ namespace WriteNippoLocally.Model
             string DateInternalName = string.Empty;
             string AuthorInternalName = string.Empty;
 
-            FieldCollection fields = list.Fields;
-            context.Load(fields);
-            context.ExecuteQuery();
+            FieldCollection fields = TargetList.Fields;
+            Context.Load(fields);
+            Context.ExecuteQuery();
 
             foreach (Field field in fields)
             {
                 if (field.Title == "日付" || field.InternalName == "Date" || field.InternalName == "date")
                 {
                     DateInternalName = field.InternalName;
+                    break;
                 }
+                else if (field.Title == "登録日時" || field.InternalName == "Created" || field.InternalName == "created")
+                {
+                    DateInternalName = field.InternalName;
+                    break;
+                }
+            }
+            foreach (Field field in fields)
+            {
                 if (field.Title == "登録者" || field.InternalName == "Author" || field.InternalName == "author")
                 {
                     AuthorInternalName = field.InternalName;
+                    break;
                 }
-
             }
 
             // アイテムを取得
@@ -157,7 +152,7 @@ namespace WriteNippoLocally.Model
                           <And>
                             <Eq>
                               <FieldRef Name='{AuthorInternalName}' LookupId='TRUE' />
-                              <Value Type='Integer'>{loginUser.Id}</Value>
+                              <Value Type='Integer'>{LoginUser.Id}</Value>
                             </Eq>
                             <Eq>
                               <FieldRef Name='{DateInternalName}' />
@@ -175,18 +170,18 @@ namespace WriteNippoLocally.Model
 
         // SharePointListsにデータを送信する
         // 追加したアイテムのIdを戻り値とする
-        public static int Send(DailyReportModel report)
+        public int Send(DailyReportModel report)
         {
             // 既存のアイテムを取得または新規作成
             ListItem item;
             if (report.Id == null)
             {
                 ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                item = list.AddItem(itemCreateInfo);
+                item = TargetList.AddItem(itemCreateInfo);
             }
             else
             {
-                item = list.GetItemById(report.Id.Value);
+                item = TargetList.GetItemById(report.Id.Value);
             }
 
             // SharePointに値を反映
@@ -195,33 +190,33 @@ namespace WriteNippoLocally.Model
                 item[field.InternalName] = field.Content;
             }
             item.Update();
-            context.ExecuteQuery();
+            Context.ExecuteQuery();
 
 
-            context.Load(item);
-            context.ExecuteQuery();
+            Context.Load(item);
+            Context.ExecuteQuery();
 
             return item.Id;
         }
 
         // クエリに該当する中で1番目のアイテムを取得する
-        private static DailyReportModel? GetReport(CamlQuery query)
+        private DailyReportModel? GetReport(CamlQuery query)
         {
 
             // ビューに含まれるフィールドを取得
-            ViewFieldCollection? viewFields = view.ViewFields;
-            context.Load(viewFields);
-            context.ExecuteQuery();
+            ViewFieldCollection? viewFields = TargetView.ViewFields;
+            Context.Load(viewFields);
+            Context.ExecuteQuery();
 
             // 表示名を取得するためにFieldCollection型でフィールドを再取得
-            FieldCollection fields = list.Fields;
-            context.Load(fields);
-            context.ExecuteQuery();
+            FieldCollection fields = TargetList.Fields;
+            Context.Load(fields);
+            Context.ExecuteQuery();
 
             // 受け取ったクエリでアイテムを取得
-            ListItemCollection items = list.GetItems(query);
-            context.Load(items);
-            context.ExecuteQuery();
+            ListItemCollection items = TargetList.GetItems(query);
+            Context.Load(items);
+            Context.ExecuteQuery();
 
             if (items.Count == 0) return null;
             ListItem item = items[0];
@@ -245,7 +240,7 @@ namespace WriteNippoLocally.Model
                 List<string> choices = [];
                 if (type == "Choice")
                 {
-                    var choiceField = context.CastTo<FieldChoice>(field);
+                    var choiceField = Context.CastTo<FieldChoice>(field);
                     choices = [.. choiceField.Choices];
                 }
 
