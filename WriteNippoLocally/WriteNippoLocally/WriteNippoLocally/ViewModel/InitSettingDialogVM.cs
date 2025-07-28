@@ -44,7 +44,7 @@ namespace WriteNippoLocally.ViewModel
 
         public InitSettingDialogVM()
         {
-            UserSettings settings = UtilsService.GetUserSettings();
+            UserSettings settings = UserSettings.GetUserSettings();
             this.SiteUrl = settings.SiteUrl;
             this.DestDirectory = settings.DestDirectory;
 

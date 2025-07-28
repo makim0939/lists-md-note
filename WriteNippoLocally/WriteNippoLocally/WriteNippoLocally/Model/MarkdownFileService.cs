@@ -31,7 +31,7 @@ namespace WriteNippoLocally.Model
         public static string CreateTodayMdFile(string content)
         {
 
-            UserSettings? settings = UtilsService.GetUserSettings();
+            UserSettings? settings = UserSettings.GetUserSettings();
             string fileNameFormat = settings.FileNameFormat.Replace("mm", "MM");
             string fileName = DateTime.Now.ToString(fileNameFormat);
             string filePath = @$"{settings.DestDirectory}\{fileName}.md";
@@ -47,7 +47,7 @@ namespace WriteNippoLocally.Model
             string mdContent = string.Empty;
 
             // ファイル名をタイトルとする
-            UserSettings? settings = UtilsService.GetUserSettings();
+            UserSettings? settings = UserSettings.GetUserSettings();
             string fileNameFormat = settings.FileNameFormat.Replace("mm", "MM");
             string fileName = DateTime.Now.ToString(fileNameFormat);
 
@@ -64,7 +64,7 @@ namespace WriteNippoLocally.Model
         }
 
         //mdファイルのセクションを解析し、DailyReportModel型に変換
-        public static DailyReportModel ReadMdFile(DailyReportModel Report, string filePath)
+        public static DailyReportModel ReadMdFile(DailyReportModel report, string filePath)
         {
             // mdファイル読み込み
             string[] lines = File.ReadAllLines(filePath);
@@ -77,7 +77,7 @@ namespace WriteNippoLocally.Model
                 {
                     heading = line.Replace("#", "").Replace(" ", "");
                     // セクションを初期化
-                    Report.Fields.ForEach(
+                    report.Fields.ForEach(
                     section =>
                     {
                         if (section.Title == heading)
@@ -88,7 +88,7 @@ namespace WriteNippoLocally.Model
                     continue;
                 }
 
-                Report.Fields.ForEach(
+                report.Fields.ForEach(
                     section =>
                     {
                         if (section.Title == heading)
@@ -99,7 +99,7 @@ namespace WriteNippoLocally.Model
             }
 
             // 入力種別毎に調整
-            Report.Fields.ForEach(
+            report.Fields.ForEach(
                 section =>
                 {
                     switch (section.Type)
@@ -118,7 +118,7 @@ namespace WriteNippoLocally.Model
                     }
                 });
 
-            return Report;
+            return report;
         }
     }
 }
