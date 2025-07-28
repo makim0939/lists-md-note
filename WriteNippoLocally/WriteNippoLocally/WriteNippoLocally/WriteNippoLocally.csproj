@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="View\UserSettingDialog.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="dotenv.net" Version="4.0.0" />
     <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.26211.12010" />
     <PackageReference Include="PnP.Framework" Version="1.18.0" />

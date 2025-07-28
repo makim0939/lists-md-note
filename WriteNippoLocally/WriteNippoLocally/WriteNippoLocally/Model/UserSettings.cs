@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
+using WriteNippoLocally.ViewModel;
 
 namespace WriteNippoLocally.Model
 {
@@ -40,6 +41,25 @@ namespace WriteNippoLocally.Model
 
             return settings;
         }
+        // ユーザ設定を保存
+        public bool StoreUserSettings()
+        {
+            bool result = true;
+            string settingsJson = JsonSerializer.Serialize(this);
+            try
+            {
+                File.WriteAllText(@".\UserSettings.json", settingsJson);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("設定ファイル書き出しエラー");
+                Console.WriteLine(ex.Message);
+                result = false;
+            }
+
+            return result;
+        }
+
 
         //  "https://[company].sharepoint.com/sites/[site]/"の部分を取得
         public string GetSharePointUrl()

@@ -1,14 +1,27 @@
-﻿using System.IO;
-using System.Text.Json;
-using WriteNippoLocally.Model;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using WriteNippoLocally.Model;
 
 namespace WriteNippoLocally.ViewModel
 {
-    class InitSettingDialogVM : INotifyPropertyChanged
+    internal class UserSettingDialogVM
     {
-        public string SiteUrl { get; set; }
+        private string _siteUrl;
+        public string SiteUrl
+        {
+            get { return _siteUrl; }
+            set
+            {
+                _siteUrl = value;
+                OnPropertyChanged();
+            }
+        }
         private string _destDirectory;
         public string DestDirectory
         {
@@ -19,33 +32,47 @@ namespace WriteNippoLocally.ViewModel
                 OnPropertyChanged();
             }
         }
+        private string _fileNameFormat;
+        public string FileNameFormat
+        {
+            get { return _fileNameFormat; }
+            set
+            {
+                _fileNameFormat = value;
+                OnPropertyChanged();
+            }
+        }
 
         public DelegateCommand SelectFolder { get; set; }
         public DelegateCommand StoreSettings { get; set; }
 
-        public InitSettingDialogVM()
+        public event Action? RequestClose;
+
+        public UserSettingDialogVM()
         {
             UserSettings settings = UserSettings.GetUserSettings();
-            this.SiteUrl = settings.SiteUrl;
-            this.DestDirectory = settings.DestDirectory;
+            this._siteUrl = settings.SiteUrl;
+            this._destDirectory = settings.DestDirectory;
+            this._fileNameFormat = settings.FileNameFormat;
 
             SelectFolder = new DelegateCommand(SelectFolderExecute);
             StoreSettings = new DelegateCommand(StoreSettingsExecute, StoreSettingsCanExecute);
         }
 
-        public event Action RequestClose;
+        // 設定を保存
         public void StoreSettingsExecute()
         {
-            // 設定を保存
             UserSettings settings = new UserSettings()
             {
                 SiteUrl = this.SiteUrl,
-                DestDirectory = this.DestDirectory
+                DestDirectory = this.DestDirectory,
+                FileNameFormat = this.FileNameFormat,
             };
             settings.StoreUserSettings();
 
             RequestClose?.Invoke();
         }
+
         private bool StoreSettingsCanExecute()
         {
             bool canExecute = true;
@@ -70,10 +97,26 @@ namespace WriteNippoLocally.ViewModel
                     canExecute = false;
                 }
             }
-            
+
             // 存在するディレクトリか
             bool isFolder = Directory.Exists(this.DestDirectory);
             if (!isFolder) canExecute = false;
+
+            // ファイル名の形式が正しいか
+            // 使用不可
+            if (this.FileNameFormat.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                canExecute = false;
+            }
+            // ファイル名のフォーマットに年月日は必須とする
+            if( 
+                !(this.FileNameFormat.ToUpper().Contains("YYYY") 
+                && this.FileNameFormat.ToUpper().Contains("MM")
+                && this.FileNameFormat.ToUpper().Contains("DD"))
+              )
+            {
+                canExecute = false;
+            }
 
             return canExecute;
         }
@@ -82,7 +125,6 @@ namespace WriteNippoLocally.ViewModel
         {
             DestDirectory = ShowSelectFolderDialog();
         }
-
         public string ShowSelectFolderDialog()
         {
             FolderBrowserDialog dialog = new()

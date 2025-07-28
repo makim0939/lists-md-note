@@ -24,6 +24,7 @@ namespace WriteNippoLocally.ViewModel
         //コマンド
         public DelegateCommand SendDailyReport { get; set; }
         public DelegateCommand StoreMdFile { get; set; }
+        public DelegateCommand ShowUserSettingDialog { get; set; }
         public DelegateCommand CreateTemplate { get; set; }
         public DelegateCommand SelectDate { get; set; }
 
@@ -41,6 +42,7 @@ namespace WriteNippoLocally.ViewModel
             // コマンドを追加
             SendDailyReport = new DelegateCommand(SendDailyReportExecute);
             StoreMdFile = new DelegateCommand(StoreMdFileExecute);
+            ShowUserSettingDialog = new DelegateCommand(ShowUserSettingDialogExecute);
         }
 
         // 非同期初期化
@@ -99,9 +101,7 @@ namespace WriteNippoLocally.ViewModel
                     }
                 }
             }
-
             Report.Add(report);
-
         }
 
         private void SendDailyReportExecute()
@@ -122,6 +122,12 @@ namespace WriteNippoLocally.ViewModel
             DailyReportModel report = MarkdownFileService.ReadMdFile(Report[0], this.FilePath);
             this.Report.Remove(Report[0]);
             this.Report.Add(report);
+        }
+
+        private void ShowUserSettingDialogExecute()
+        {
+            var dialog = new UserSettingDialog();
+            bool? result = dialog.ShowDialog();
         }
 
         private DateFileMapSettings GetDateFileMapSettings ()

@@ -24,6 +24,9 @@ namespace WriteNippoLocally
         public MainWindow()
         {
             InitializeComponent();
+
+            
+
             this.DataContext = new MainWindowVM();
         }
         

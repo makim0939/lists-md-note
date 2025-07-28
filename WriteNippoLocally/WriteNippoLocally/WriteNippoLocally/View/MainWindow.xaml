@@ -20,10 +20,14 @@
         </Style>
     </Window.Resources>
 
-
     <ScrollViewer>
         <StackPanel Margin="16 16 0 16">
-
+            <Button 
+                Content="設定" 
+                Width="72" Padding="8" Margin="32 16" 
+                HorizontalAlignment="Right"
+                 Command="{Binding ShowUserSettingDialog}"
+            />
             <ItemsControl ItemsSource="{Binding Report[0].Fields}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
