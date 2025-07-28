@@ -32,8 +32,7 @@ namespace WriteNippoLocally.Model
         {
 
             UserSettings? settings = UserSettings.GetUserSettings();
-            string fileNameFormat = settings.FileNameFormat.Replace("mm", "MM");
-            string fileName = DateTime.Now.ToString(fileNameFormat);
+            string fileName = settings.GetFileName(DateTime.Now);
             string filePath = @$"{settings.DestDirectory}\{fileName}.md";
 
             File.WriteAllText(filePath, content);
@@ -48,8 +47,7 @@ namespace WriteNippoLocally.Model
 
             // ファイル名をタイトルとする
             UserSettings? settings = UserSettings.GetUserSettings();
-            string fileNameFormat = settings.FileNameFormat.Replace("mm", "MM");
-            string fileName = DateTime.Now.ToString(fileNameFormat);
+            string fileName = settings.GetFileName(DateTime.Now);
 
             mdContent += $"# {fileName}\n\n\n";
 

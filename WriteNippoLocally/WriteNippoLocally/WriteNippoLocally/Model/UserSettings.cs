@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
-using WriteNippoLocally.ViewModel;
 
 namespace WriteNippoLocally.Model
 {
@@ -61,6 +60,7 @@ namespace WriteNippoLocally.Model
         }
 
 
+        // SiteUrlの取得補助
         //  "https://[company].sharepoint.com/sites/[site]/"の部分を取得
         public string GetSharePointUrl()
         {
@@ -89,6 +89,18 @@ namespace WriteNippoLocally.Model
                 }
             }
             return viewId;
+        }
+
+        // FileNameFormatの取得補助
+        // 日付をあてはめた文字列を取得 ファイル名形式のルールを担う
+        public string GetFileName(DateTime date)
+        {
+            string fileName = this.FileNameFormat;
+            fileName = fileName.Replace("YYYY", date.ToString("yyyy"));
+            fileName = fileName.Replace("MM", date.ToString("MM"));
+            fileName = fileName.Replace("DD", date.ToString("dd"));
+
+            return fileName;
         }
     }
 }

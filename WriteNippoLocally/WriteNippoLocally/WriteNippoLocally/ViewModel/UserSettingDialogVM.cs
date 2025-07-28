@@ -110,9 +110,9 @@ namespace WriteNippoLocally.ViewModel
             }
             // ファイル名のフォーマットに年月日は必須とする
             if( 
-                !(this.FileNameFormat.ToUpper().Contains("YYYY") 
-                && this.FileNameFormat.ToUpper().Contains("MM")
-                && this.FileNameFormat.ToUpper().Contains("DD"))
+                !(this.FileNameFormat.Contains("YYYY") 
+                && this.FileNameFormat.Contains("MM")
+                && this.FileNameFormat.Contains("DD"))
               )
             {
                 canExecute = false;

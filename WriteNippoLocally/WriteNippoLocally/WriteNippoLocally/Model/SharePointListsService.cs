@@ -156,7 +156,7 @@ namespace WriteNippoLocally.Model
                             </Eq>
                             <Eq>
                               <FieldRef Name='{DateInternalName}' />
-                              <Value Type='DateTime' IncludeTimeValue='FALSE'>{date.ToString("yyyy-MM-dd")}</Value>
+                              <Value Type='DateTime' IncludeTimeValue='FALSE'>{date:yyyy-MM-dd}</Value>
                             </Eq>
                           </And>
                         </Where>
