@@ -36,39 +36,29 @@ namespace WriteNippoLocally.ViewModel
                 bool? result = dialog.ShowDialog();
             }
 
-            // 今日のListsアイテム読み込み。なければ、フィールドのみ取得
-            DailyReportModel? myReport = SharePointListsService.GetMyReport(DateTime.Now);
-            if (myReport != null)
-            {
-                this.Report.Add(myReport);
-            }
-            else
-            {
-                // もとからあるアイテムを取得し、フィールドを設定する。
-                DailyReportModel newReport = SharePointListsService.GetReportFields();
-                this.Report.Add(newReport);
-            }
+            // フィールド情報のみからDailyReportModelインスタンスを作成
+            DailyReportModel report = SharePointListsService.GetReportFields();
 
             // mdファイル読み込み。なければ新規作成
             DateFileMapSettings dateFileMap = GetDateFileMapSettings();
             string todayKey = DateTime.Now.ToString("yyyyMMdd");
+            string filePath = string.Empty;
             if (dateFileMap.Map.ContainsKey(todayKey))
             {
                 // markdown読み込み
-                string filePath = dateFileMap.Map[todayKey];
-                MarkdownFileService.ReadMdFile(Report[0], filePath);
-                this.FilePath = filePath;
+                filePath = dateFileMap.Map[todayKey];
+                report = MarkdownFileService.ReadMdFile(report, filePath);
             }
             else
             {
                 // markdown新規作成
-                string mdContent = MarkdownFileService.CreateMdContent(Report[0]);
-                string filePath = MarkdownFileService.CreateTodayMdFile(mdContent);
+                string mdContent = MarkdownFileService.CreateMdContent(report);
+                filePath = MarkdownFileService.CreateTodayMdFile(mdContent);
 
                 string key = DateTime.Now.ToString("yyyyMMdd");
                 dateFileMap.Map.Add(key, filePath);
-                this.FilePath = filePath;
             }
+            this.FilePath = filePath;
 
             // 日付とファイルパスを紐づける設定ファイルを更新
             string settingsJson = JsonSerializer.Serialize(dateFileMap);
@@ -81,6 +71,22 @@ namespace WriteNippoLocally.ViewModel
                 Console.WriteLine("設定ファイル書き出しエラー");
                 Console.WriteLine(ex.Message);
             }
+
+            // 今日のListsアイテムを読み込みReportに反映する
+            DailyReportModel? todayReport = SharePointListsService.GetMyReport(DateTime.Now);
+            if (todayReport != null)
+            {
+                // 空のセクションがあれば、アイテムの内容を反映
+                for (int i = 0; i < report.Fields.Count; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(report.Fields[i].Content))
+                    {
+                        report.Fields[i].Content = todayReport.Fields[i].Content;
+                    }
+                }
+            }
+
+            Report.Add(report);
 
             // コマンドを追加
             SendDailyReport = new DelegateCommand(SendDailyReportExecute);
@@ -99,7 +105,6 @@ namespace WriteNippoLocally.ViewModel
 
         public void ReadMdFileExecute()
         {
-
             DailyReportModel report = MarkdownFileService.ReadMdFile(Report[0], this.FilePath);
             this.Report.Remove(Report[0]);
             this.Report.Add(report);
