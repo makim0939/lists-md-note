@@ -18,16 +18,49 @@
         <Style x:Key="SelectionHandlingComboBoxStyle" TargetType="ComboBox">
             <EventSetter Event="SelectionChanged" Handler="OnSelectionChanged" />
         </Style>
+        <BitmapImage x:Key="LeftArrow" UriSource="../LeftArrow.png" />
     </Window.Resources>
 
     <ScrollViewer>
         <StackPanel Margin="16 16 0 16">
-            <Button 
-                Content="設定" 
-                Width="72" Padding="8" Margin="32 16" 
-                HorizontalAlignment="Right"
-                 Command="{Binding ShowUserSettingDialog}"
-            />
+            <StackPanel Orientation="Horizontal">
+                <Button 
+                    Content="＜"
+                    Width="39" Height="39" Padding="8" Margin="32 16" 
+                     Command="{Binding SelectPrevDate}"
+                />
+                <TextBlock 
+                    Text="{Binding SelectedDate}" FontSize="16" FontWeight="Bold"
+                    VerticalAlignment="Center"
+                />
+                <Button 
+                    Width="39" Height="39" Padding="8" Margin="32 16" 
+                    Command="{Binding SelectNextDate}"
+                    Content="＞"
+                />
+                <Button 
+                    Content="設定" 
+                    Width="72" Padding="8" Margin="32 16" 
+                    HorizontalAlignment="Right"
+                     Command="{Binding ShowUserSettingDialog}"
+                />
+            </StackPanel>
+
+            <TextBlock Text="データがありません" FontSize="16" >
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsReportExist}" Value="false">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsReportExist}" Value="true">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
             <ItemsControl ItemsSource="{Binding Report[0].Fields}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>

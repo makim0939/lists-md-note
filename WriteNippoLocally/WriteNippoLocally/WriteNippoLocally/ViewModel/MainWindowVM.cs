@@ -1,22 +1,39 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using WriteNippoLocally.Model;
 using WriteNippoLocally.View;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace WriteNippoLocally.ViewModel
 {
 
-    class MainWindowVM
+    class MainWindowVM : INotifyPropertyChanged
     {
         public ObservableCollection<DailyReportModel> Report { get; set; } = new ObservableCollection<DailyReportModel>();
-        public DateTime SelectedDate { get; set; } = DateTime.Now; // 選択されている日付
+        private bool _isReportExist { get; set; } = true;
+        public bool IsReportExist
+        {
+            get { return _isReportExist; }
+            set
+            {
+                _isReportExist = value;
+                OnPropertyChanged();
+            }
+        }
+        public DateTime _selectedDate = DateTime.Now;
+        public DateTime SelectedDate
+        { 
+            get { return _selectedDate; }
+            set
+            {
+                _selectedDate = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string FilePath { get; set; } = "";
 
         private SharePointListsService ListsService { get; set; }
@@ -26,7 +43,8 @@ namespace WriteNippoLocally.ViewModel
         public DelegateCommand StoreMdFile { get; set; }
         public DelegateCommand ShowUserSettingDialog { get; set; }
         public DelegateCommand CreateTemplate { get; set; }
-        public DelegateCommand SelectDate { get; set; }
+        public DelegateCommand SelectPrevDate { get; set; }
+        public DelegateCommand SelectNextDate { get; set; }
 
         //コンストラクタ
         public MainWindowVM()
@@ -43,6 +61,9 @@ namespace WriteNippoLocally.ViewModel
             SendDailyReport = new DelegateCommand(SendDailyReportExecute);
             StoreMdFile = new DelegateCommand(StoreMdFileExecute);
             ShowUserSettingDialog = new DelegateCommand(ShowUserSettingDialogExecute);
+            SelectPrevDate = new DelegateCommand(SelectPrevDateExecute, SelectPrevDateCanExecute);
+            SelectNextDate = new DelegateCommand(SelectNextDateExecute, SelectNextDateCanExecute);
+            
         }
 
         // 非同期初期化
@@ -124,6 +145,52 @@ namespace WriteNippoLocally.ViewModel
             this.Report.Add(report);
         }
 
+        // SelectDateコマンド
+        private void SelectPrevDateExecute()
+        {
+            SelectedDate = SelectedDate.AddDays(-1);
+            ChangeDate();
+        }
+        private bool SelectPrevDateCanExecute()
+        {
+            return true;
+        }
+        private void SelectNextDateExecute()
+        {
+            SelectedDate = SelectedDate.AddDays(1);
+            ChangeDate();
+        }
+        private bool SelectNextDateCanExecute()
+        {
+            bool canExecute = true;
+            if (SelectedDate.Date == DateTime.Now.Date) canExecute = false;
+            return canExecute;
+        }
+
+        private void ChangeDate()
+        {
+            var report = ListsService.GetReportFields();
+
+            if (Report.Count > 0)
+            {
+                Report.Remove(Report[0]);
+            }
+
+            DateFileMapSettings dateFileMap = GetDateFileMapSettings();
+            string key = SelectedDate.ToString("yyyyMMdd");
+            // ファイルパスを更新
+            FilePath = string.Empty;
+            if (dateFileMap.Map.ContainsKey(key))
+            {
+                // markdown読み込み
+                FilePath = dateFileMap.Map[key];
+                report = MarkdownFileService.ReadMdFile(report, FilePath);
+                Report.Add(report);
+            }
+
+            IsReportExist = Report.Count > 0;
+        }
+
         private void ShowUserSettingDialogExecute()
         {
             var dialog = new UserSettingDialog();
@@ -150,6 +217,16 @@ namespace WriteNippoLocally.ViewModel
             }
 
             return dateFileMap;
+        }
+
+        // データ変更通知用
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }
