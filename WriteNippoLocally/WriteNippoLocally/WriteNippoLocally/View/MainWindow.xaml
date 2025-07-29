@@ -21,11 +21,23 @@
         <BitmapImage x:Key="LeftArrow" UriSource="../LeftArrow.png" />
         <BitmapImage x:Key="RightArrow" UriSource="../RightArrow.png" />
     </Window.Resources>
-    
+
+   
     <ScrollViewer>
-        <StackPanel Margin="16 16 0 16">
-            <StackPanel Orientation="Horizontal">
+        <Grid Margin="16 16 0 16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="64" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
                 <Button 
+                    Grid.Column="0" Grid.Row="0"
                     Width="39" Height="39" Padding="8" Margin="32 16" 
                     Background="Transparent" BorderThickness="0"
                     Command="{Binding SelectPrevDate}"
@@ -33,11 +45,13 @@
                     <Image Source="/LeftArrow.png" />
                 </Button>
                 <TextBlock 
+                    Grid.Column="1" Grid.Row="0"
                     Text="{Binding FileName}" FontSize="16" FontWeight="Bold"
                     MinWidth="96" 
                     VerticalAlignment="Center"
                 />
                 <Button 
+                    Grid.Column="2" Grid.Row="0"
                     Width="39" Height="39" Padding="8" Margin="32 16" 
                     Background="Transparent" BorderThickness="0"
                     Command="{Binding SelectNextDate}"
@@ -54,79 +68,81 @@
                     </Button.Style>
                     <Image Source="/RightArrow.png" />
                 </Button>
+            
                 <Button 
+                    Grid.Column="3" Grid.Row="0"
                     Content="設定" 
                     Width="72" Padding="4" Margin="32 16"
                     Command="{Binding ShowUserSettingDialog}"
                 />
 
+            <StackPanel Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" >
+                <ItemsControl ItemsSource="{Binding Report[0].Fields}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="5">
+                                <TextBlock 
+                                    Text="{Binding Title}" FontWeight="Bold" FontSize="16" 
+                                />
+                                <ContentControl Content="{Binding}">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Type}" Value="Note">
+                                                    <Setter Property="ContentTemplate">
+                                                        <Setter.Value>
+                                                            <DataTemplate>
+                                                                <TextBox 
+                                                                    Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"  
+                                                                    TextWrapping="Wrap"
+                                                                    AcceptsReturn="True"
+                                                                    MinHeight="64"
+                                                                    Style="{StaticResource FocusHandlingTextBoxStyle}"
+                                                                />
+                                                            </DataTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="Text">
+                                                    <Setter Property="ContentTemplate">
+                                                        <Setter.Value>
+                                                            <DataTemplate>
+                                                                <TextBox 
+                                                                    Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" 
+                                                                    Style="{StaticResource FocusHandlingTextBoxStyle}"
+                                                                />
+                                                            </DataTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="Choice">
+                                                    <Setter Property="ContentTemplate">
+                                                        <Setter.Value>
+                                                            <DataTemplate>
+                                                                <ComboBox 
+                                                                    ItemsSource="{Binding Choices, UpdateSourceTrigger=PropertyChanged}" 
+                                                                    SelectedItem="{Binding Content}" 
+                                                                    Style="{StaticResource SelectionHandlingComboBoxStyle}"
+                                                                />
+                                                            </DataTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ContentControl.Style>
+                                </ContentControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button 
+                Width="72" Height="39" Padding="8" Margin="32 16" 
+                HorizontalAlignment="Right"
+                Content="送信"
+                Command="{Binding SendDailyReport}"
+                />
             </StackPanel>
-
-            <ItemsControl ItemsSource="{Binding Report[0].Fields}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="5">
-                            <TextBlock 
-                                Text="{Binding Title}" FontWeight="Bold" FontSize="16" 
-                            />
-                            <ContentControl Content="{Binding}">
-                                <ContentControl.Style>
-                                    <Style TargetType="ContentControl">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Type}" Value="Note">
-                                                <Setter Property="ContentTemplate">
-                                                    <Setter.Value>
-                                                        <DataTemplate>
-                                                            <TextBox 
-                                                                Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"  
-                                                                TextWrapping="Wrap"
-                                                                AcceptsReturn="True"
-                                                                MinHeight="64"
-                                                                Style="{StaticResource FocusHandlingTextBoxStyle}"
-                                                            />
-                                                        </DataTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Type}" Value="Text">
-                                                <Setter Property="ContentTemplate">
-                                                    <Setter.Value>
-                                                        <DataTemplate>
-                                                            <TextBox 
-                                                                Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" 
-                                                                Style="{StaticResource FocusHandlingTextBoxStyle}"
-                                                            />
-                                                        </DataTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Type}" Value="Choice">
-                                                <Setter Property="ContentTemplate">
-                                                    <Setter.Value>
-                                                        <DataTemplate>
-                                                            <ComboBox 
-                                                                ItemsSource="{Binding Choices, UpdateSourceTrigger=PropertyChanged}" 
-                                                                SelectedItem="{Binding Content}" 
-                                                                Style="{StaticResource SelectionHandlingComboBoxStyle}"
-                                                            />
-                                                        </DataTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ContentControl.Style>
-                            </ContentControl>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Button 
-            Width="72" Height="39" Padding="8" Margin="32 16" 
-            HorizontalAlignment="Right"
-            Content="送信"
-            Command="{Binding SendDailyReport}"
-            />
-        </StackPanel>
+        </Grid>
     </ScrollViewer>
 </Window>
