@@ -62,21 +62,6 @@
 
             </StackPanel>
 
-            <TextBlock Text="データがありません" FontSize="16" >
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsReportExist}" Value="false">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding IsReportExist}" Value="true">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
-
             <ItemsControl ItemsSource="{Binding Report[0].Fields}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
