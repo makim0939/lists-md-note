@@ -23,19 +23,26 @@ namespace WriteNippoLocally.ViewModel
                 OnPropertyChanged();
             }
         }
-        public DateTime _selectedDate = DateTime.Now;
-        public DateTime SelectedDate
-        { 
-            get { return _selectedDate; }
+        private string _fileName { get; set; } = "";
+        public string FileName
+        {
+            get { return _fileName; }
             set
             {
-                _selectedDate = value;
+                _fileName = value;
                 OnPropertyChanged();
             }
         }
-
-        public string FilePath { get; set; } = "";
-
+        private string _filePath { get; set; } = "";
+        public string FilePath {
+            get { return _filePath; }
+            set
+            {
+                FileName = Path.GetFileNameWithoutExtension(value);
+                _filePath = value;
+            }
+        }
+        public DateTime SelectedDate { get; set; }
         private SharePointListsService ListsService { get; set; }
 
         //コマンド
@@ -58,7 +65,7 @@ namespace WriteNippoLocally.ViewModel
             }
 
             // コマンドを追加
-            SendDailyReport = new DelegateCommand(SendDailyReportExecute);
+            SendDailyReport = new DelegateCommand(SendDailyReportExecute, SendDailyReportCanExecute);
             StoreMdFile = new DelegateCommand(StoreMdFileExecute);
             ShowUserSettingDialog = new DelegateCommand(ShowUserSettingDialogExecute);
             SelectPrevDate = new DelegateCommand(SelectPrevDateExecute, SelectPrevDateCanExecute);
@@ -73,12 +80,14 @@ namespace WriteNippoLocally.ViewModel
         {
             ListsService = await SharePointListsService.CreateAsync();
 
+            SelectedDate = DateTime.Now;
+
             // フィールド情報のみからDailyReportModelインスタンスを作成
             DailyReportModel report = ListsService.GetReportFields();
 
             // mdファイル読み込み。なければ新規作成
             DateFileMapSettings dateFileMap = GetDateFileMapSettings();
-            string todayKey = DateTime.Now.ToString("yyyyMMdd");
+            string todayKey = SelectedDate.ToString("yyyyMMdd");
             string filePath = string.Empty;
             if (dateFileMap.Map.ContainsKey(todayKey))
             {
@@ -92,7 +101,7 @@ namespace WriteNippoLocally.ViewModel
                 string mdContent = MarkdownFileService.CreateMdContent(report);
                 filePath = MarkdownFileService.CreateTodayMdFile(mdContent);
 
-                string key = DateTime.Now.ToString("yyyyMMdd");
+                string key = SelectedDate.ToString("yyyyMMdd");
                 dateFileMap.Map.Add(key, filePath);
             }
             this.FilePath = filePath;
@@ -110,7 +119,7 @@ namespace WriteNippoLocally.ViewModel
             }
 
             // 今日のListsアイテムを読み込みReportに反映する
-            DailyReportModel? todayReport = ListsService.GetMyReport(DateTime.Now);
+            DailyReportModel? todayReport = ListsService.GetMyReport(SelectedDate);
             if (todayReport != null)
             {
                 // 空のセクションがあれば、アイテムの内容を反映
@@ -129,6 +138,10 @@ namespace WriteNippoLocally.ViewModel
         {
             if (Report.Count == 0) return;
             Report[0].Id = ListsService.Send(Report[0]);
+        }
+        private bool SendDailyReportCanExecute()
+        {
+            return Report.Count > 0;
         }
 
         public void StoreMdFileExecute()
@@ -188,6 +201,7 @@ namespace WriteNippoLocally.ViewModel
                 Report.Add(report);
             }
 
+            if (Report.Count == 0) FileName = $"{SelectedDate:yyyy-MM-dd}のファイルがありません";
             IsReportExist = Report.Count > 0;
         }
 

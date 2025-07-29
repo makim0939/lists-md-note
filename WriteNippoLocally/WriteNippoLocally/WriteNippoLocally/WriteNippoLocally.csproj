@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <None Remove="LeftArrow.png" />
+    <None Remove="RightArrow.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,9 @@
 
   <ItemGroup>
     <Resource Include="LeftArrow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="RightArrow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

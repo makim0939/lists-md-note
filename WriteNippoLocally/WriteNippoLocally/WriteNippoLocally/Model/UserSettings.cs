@@ -14,7 +14,7 @@ namespace WriteNippoLocally.Model
         public string DestDirectory { get; set; } = string.Empty;
 
         [JsonInclude]
-        public string FileNameFormat { get; set; } = "日報yyyy-mm-dd";
+        public string FileNameFormat { get; set; } = "日報YYYY-MM-DD";
 
         public UserSettings() { }
 

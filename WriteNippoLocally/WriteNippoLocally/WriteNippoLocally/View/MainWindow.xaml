@@ -19,31 +19,47 @@
             <EventSetter Event="SelectionChanged" Handler="OnSelectionChanged" />
         </Style>
         <BitmapImage x:Key="LeftArrow" UriSource="../LeftArrow.png" />
+        <BitmapImage x:Key="RightArrow" UriSource="../RightArrow.png" />
     </Window.Resources>
-
+    
     <ScrollViewer>
         <StackPanel Margin="16 16 0 16">
             <StackPanel Orientation="Horizontal">
                 <Button 
-                    Content="＜"
                     Width="39" Height="39" Padding="8" Margin="32 16" 
-                     Command="{Binding SelectPrevDate}"
-                />
+                    Background="Transparent" BorderThickness="0"
+                    Command="{Binding SelectPrevDate}"
+                >
+                    <Image Source="/LeftArrow.png" />
+                </Button>
                 <TextBlock 
-                    Text="{Binding SelectedDate}" FontSize="16" FontWeight="Bold"
+                    Text="{Binding FileName}" FontSize="16" FontWeight="Bold"
+                    MinWidth="96" 
                     VerticalAlignment="Center"
                 />
                 <Button 
                     Width="39" Height="39" Padding="8" Margin="32 16" 
+                    Background="Transparent" BorderThickness="0"
                     Command="{Binding SelectNextDate}"
-                    Content="＞"
-                />
+                >
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Visibility" Value="Hidden"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Image Source="/RightArrow.png" />
+                </Button>
                 <Button 
                     Content="設定" 
-                    Width="72" Padding="8" Margin="32 16" 
-                    HorizontalAlignment="Right"
-                     Command="{Binding ShowUserSettingDialog}"
+                    Width="72" Padding="4" Margin="32 16"
+                    Command="{Binding ShowUserSettingDialog}"
                 />
+
             </StackPanel>
 
             <TextBlock Text="データがありません" FontSize="16" >
@@ -121,7 +137,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
             <Button 
-            Width="72" Padding="8" Margin="32 16" 
+            Width="72" Height="39" Padding="8" Margin="32 16" 
             HorizontalAlignment="Right"
             Content="送信"
             Command="{Binding SendDailyReport}"
