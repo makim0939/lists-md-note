@@ -200,7 +200,7 @@ namespace NippoWriter.ViewModel
         {
             if (Report.Count == 0) return;
             string content = MarkdownFileService.CreateMdContent(Report[0], FileName);
-            MarkdownFileService.storeMdFile(FilePath, content);
+            MarkdownFileService.StoreMdFile(FilePath, content);
         }
 
         /// <summary>

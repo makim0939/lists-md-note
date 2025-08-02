@@ -8,7 +8,12 @@ namespace NippoWriter.Model
         {
         }
 
-        public static void storeMdFile(string filePath, string content)
+        /// <summary>
+        /// ファイルを上書き保存する
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="content"></param>
+        public static void StoreMdFile(string filePath, string content)
         {
 
             File.WriteAllText(filePath, content);
@@ -16,8 +21,11 @@ namespace NippoWriter.Model
             return;
         }
 
-        // 今日の分のmdファイルの新規作成
-        // 作成したファイルのパスを戻り値とする。
+        /// <summary>
+        /// 今日の分のmdファイルを作成し、そのファイルパスを返す
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public static string CreateTodayMdFile(string content)
         {
 
@@ -31,7 +39,7 @@ namespace NippoWriter.Model
         }
 
         /// <summary>
-        /// 
+        /// reportを受け取り、mdファイルと合わせた文字列を返す。
         /// </summary>
         /// <param name="report"></param>
         /// <param name="filePath"></param>
@@ -73,7 +81,12 @@ namespace NippoWriter.Model
             return mdContent;
         }
 
-        // DailyReportModelからmarkdownファイルの中身を作成する。
+        /// <summary>
+        /// 新規にmdファイルの文字列を作成する
+        /// </summary>
+        /// <param name="dailyReport"></param>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         public static string CreateMdContent(DailyReportModel dailyReport, string? fileName = null)
         {
             string mdContent = string.Empty;
@@ -94,7 +107,12 @@ namespace NippoWriter.Model
             return mdContent;
         }
 
-        //mdファイルのセクションを解析し、DailyReportModel型に変換
+        /// <summary>
+        /// mdファイルを解析し、受け取ったreportのContentsを設定
+        /// </summary>
+        /// <param name="report"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static DailyReportModel ReadMdFile(DailyReportModel report, string filePath)
         {
             // mdファイル読み込み
