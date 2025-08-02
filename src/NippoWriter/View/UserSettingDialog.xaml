@@ -1,0 +1,77 @@
+﻿<Window x:Class="NippoWriter.View.UserSettingDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NippoWriter.View"
+        mc:Ignorable="d"
+        Title="{Binding DialogTitle }" Height="420" Width="640" ResizeMode="NoResize"
+        >
+    
+    <StackPanel Margin="16">
+        <!--日報記述サイトのURL-->
+        <TextBlock
+            Text="SPOリストのURL" FontWeight="Bold" FontSize="16"
+            Margin="0 16 0 4"
+        />
+        <TextBlock
+            FontSize="14" Foreground="#555555"
+            Margin="0 0 0 4"
+        >
+            「viewid=○○」の部分まで入力すると、そのビューの項目が取り込まれます。
+        </TextBlock>
+        <TextBox 
+            Text="{Binding SiteUrl, UpdateSourceTrigger=PropertyChanged}" FontSize="16"
+            Margin="0 4"
+            KeyboardNavigation.TabIndex="1"
+         />
+
+        <!--保存先フォルダのパス-->
+        <TextBlock
+            Text="mdファイルを保存するフォルダ" FontWeight="Bold" FontSize="16"
+            Margin="0 16 0 4"
+        />
+        <StackPanel Orientation="Horizontal" >
+            <Button 
+                    Content="フォルダを選択" 
+                    Width="120" Padding="4" Margin=" 0 4"
+                    HorizontalAlignment="Left"
+                    Command="{Binding SelectFolder}"
+                     KeyboardNavigation.TabIndex="2"
+                />
+            <TextBox
+                    Text="{Binding DestDirectory, UpdateSourceTrigger=PropertyChanged}" FontSize="16"
+                    Width="469" MaxWidth="469" Margin="4 4"
+                    KeyboardNavigation.TabIndex="3"
+                />
+        </StackPanel>
+
+    <!--ファイル名の形式-->
+        <TextBlock
+            Text="ファイル名の形式" FontWeight="Bold" FontSize="16"
+            Margin="0 16 0 4"
+        />
+        <TextBlock
+            FontSize="14" Foreground="#555555"
+            Margin="0 0 0 4"
+        >
+            「YYYY→年」「MM→月」「DD→日」に置き換えられた文字列が、ファイル名となります。
+        </TextBlock>
+        <TextBox
+            Text="{Binding FileNameFormat, UpdateSourceTrigger=PropertyChanged}" FontSize="16"
+            Margin=" 0 4"
+            KeyboardNavigation.TabIndex="4"
+        />
+
+        <!--決定ボタン-->
+        <Button 
+            Content="OK" 
+            Width="120" Padding="4"
+            Margin=" 0 16"
+            HorizontalAlignment="Right"
+            Command="{Binding StoreSettings}"
+            KeyboardNavigation.TabIndex="5"
+        />
+        
+    </StackPanel>
+</Window>

@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace WriteNippoLocally
+namespace NippoWriter
 {
     /// <summary>
     /// Interaction logic for App.xaml

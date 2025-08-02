@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 
-namespace WriteNippoLocally.Model
+namespace NippoWriter.Model
 {
     internal class UserSettings
     {

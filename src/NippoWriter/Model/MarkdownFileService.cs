@@ -1,25 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Shapes;
-using static System.Windows.Forms.LinkLabel;
+﻿using System.IO;
 
-namespace WriteNippoLocally.Model
+namespace NippoWriter.Model
 {
-    internal  class MarkdownFileService
+    internal class MarkdownFileService
     {
-        static MarkdownFileService() 
+        static MarkdownFileService()
         {
         }
 
-        public static void storeMdFile(DailyReportModel dailyReport, string filePath)
+        public static void storeMdFile(string filePath, string content)
         {
-            // 各フィールドの内容をmdファイルに上書き保存
-            string content = CreateMdContent(dailyReport);
 
             File.WriteAllText(filePath, content);
 
@@ -40,14 +30,57 @@ namespace WriteNippoLocally.Model
             return filePath;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="report"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public static string UpdateMdContent(DailyReportModel report, string filePath)
+        {
+            string mdContent = string.Empty;
+
+            string[] lines = File.ReadAllLines(filePath);
+            bool isReplace = false;
+            // 行ごとに見る
+            for (int i = 0; i < lines.Length; i++)
+            {
+                // ##見出しか最終行まで1行ずつ進める
+                while (i < lines.Length && !(lines[i].StartsWith("## ")))
+                {
+                    if (!isReplace) mdContent += $"{lines[i]}\n";
+                    i++;
+                }
+                if (i >= lines.Length) break;
+                mdContent += $"{lines[i]}\n";
+
+                string heading = heading = lines[i].Replace("## ", "");
+
+                // フィールドのコンテンツを追加。置き換えフラグを設定
+                isReplace = false;
+                foreach (ReportField field in report.Fields)
+                {
+                    if (field.Title == heading)
+                    {
+                        mdContent += $"{field.Content}\n\n";
+                        isReplace = true;
+                        break;
+                    }
+                }
+
+            }
+
+            return mdContent;
+        }
+
         // DailyReportModelからmarkdownファイルの中身を作成する。
-        public static string CreateMdContent(DailyReportModel dailyReport)
+        public static string CreateMdContent(DailyReportModel dailyReport, string? fileName = null)
         {
             string mdContent = string.Empty;
 
             // ファイル名をタイトルとする
-            UserSettings? settings = UserSettings.GetUserSettings();
-            string fileName = settings.GetFileName(DateTime.Now);
+            UserSettings settings = UserSettings.GetUserSettings();
+            fileName ??= settings.GetFileName(DateTime.Now);
 
             mdContent += $"# {fileName}\n\n\n";
 
@@ -117,6 +150,25 @@ namespace WriteNippoLocally.Model
                 });
 
             return report;
+        }
+
+        private static string CheckHeading(string line, List<ReportField> fields)
+        {
+            // フィールドと一致する見出しあったら、そのContentを追加
+            string matchHeading = string.Empty;
+            if (line.StartsWith("##"))
+            {
+                string heading = line.Replace("#", "").Replace(" ", "");
+                // セクションを初期化
+                fields.ForEach(
+                field =>
+                {
+                    if (field.Title == heading) matchHeading = field.Title;
+
+                });
+            }
+
+            return matchHeading;
         }
     }
 }

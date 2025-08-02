@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>Resource\NippoWriter.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,12 +19,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="View\UserSettingDialog.cs" />
+    <None Remove="Resource\LeftArrow.png" />
+    <None Remove="Resource\RightArrow.png" />
+    <None Remove="Resource\Settings.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="LeftArrow.png" />
-    <None Remove="RightArrow.png" />
+    <Content Include="Resource\NippoWriter.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resource\LeftArrow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resource\RightArrow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resource\Settings.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,12 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="LeftArrow.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="RightArrow.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    <Folder Include="MdOutput\" />
   </ItemGroup>
 
   <ItemGroup>

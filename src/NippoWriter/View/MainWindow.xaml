@@ -1,16 +1,15 @@
-﻿<Window x:Class="WriteNippoLocally.MainWindow"
+﻿<Window x:Class="NippoWriter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WriteNippoLocally"
+        xmlns:local="clr-namespace:NippoWriter"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="720" FontSize="13"
+        Title="Nippo Writer" Height="800" Width="720" FontSize="14"
         Loaded="OnWindowLoaded"
         Activated="OnWindowActivated"
         Deactivated="OnWindowDeactived"
 >
-
     <Window.Resources>
         <Style x:Key="FocusHandlingTextBoxStyle" TargetType="TextBox">
             <EventSetter Event="LostFocus" Handler="OnLostForcus" />
@@ -18,73 +17,73 @@
         <Style x:Key="SelectionHandlingComboBoxStyle" TargetType="ComboBox">
             <EventSetter Event="SelectionChanged" Handler="OnSelectionChanged" />
         </Style>
-        <BitmapImage x:Key="LeftArrow" UriSource="../LeftArrow.png" />
-        <BitmapImage x:Key="RightArrow" UriSource="../RightArrow.png" />
     </Window.Resources>
 
-   
     <ScrollViewer>
         <Grid Margin="16 16 0 16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="64" />
+                <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            
-                <Button 
-                    Grid.Column="0" Grid.Row="0"
-                    Width="39" Height="39" Padding="8" Margin="32 16" 
-                    Background="Transparent" BorderThickness="0"
-                    Command="{Binding SelectPrevDate}"
-                >
-                    <Image Source="/LeftArrow.png" />
-                </Button>
-                <TextBlock 
-                    Grid.Column="1" Grid.Row="0"
-                    Text="{Binding FileName}" FontSize="16" FontWeight="Bold"
-                    MinWidth="96" 
-                    VerticalAlignment="Center"
-                />
-                <Button 
-                    Grid.Column="2" Grid.Row="0"
-                    Width="39" Height="39" Padding="8" Margin="32 16" 
-                    Background="Transparent" BorderThickness="0"
-                    Command="{Binding SelectNextDate}"
-                >
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Visibility" Value="Hidden"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <Image Source="/RightArrow.png" />
-                </Button>
-            
-                <Button 
-                    Grid.Column="3" Grid.Row="0"
-                    Content="設定" 
-                    Width="72" Padding="4" Margin="32 16"
-                    Command="{Binding ShowUserSettingDialog}"
-                />
 
-            <StackPanel Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" >
+            <Button 
+                Grid.Column="0" Grid.Row="0"
+                Width="40" Height="40" Padding="8" Margin="16" 
+                Background="Transparent" BorderThickness="0"
+                Command="{Binding SelectPrevDate}"
+             >
+                <Image Source="/Resource/LeftArrow.png" />
+            </Button>
+            <TextBlock 
+                Grid.Column="1" Grid.Row="0"
+                MinWidth="210"
+                Text="{Binding FileName}" FontSize="18" FontWeight="Bold" TextAlignment="Center"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+            />
+            <Button 
+                Grid.Column="2" Grid.Row="0"
+                Width="40" Height="40" Padding="8" Margin="16" 
+                Background="Transparent" BorderThickness="0"
+                Command="{Binding SelectNextDate}"
+            >
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Visibility" Value="Hidden"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Image Source="/Resource/RightArrow.png" />
+            </Button>
+
+            <Button 
+                Grid.Column="4" Grid.Row="0" 
+                Width="40" Height="40" Padding="4" Margin="16"
+                 Background="Transparent" BorderThickness="0"
+                Command="{Binding ShowUserSettingDialog}"
+             >
+                <Image Source="/Resource/Settings.png" />
+            </Button>
+
+            <StackPanel Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" >
                 <ItemsControl ItemsSource="{Binding Report[0].Fields}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="5">
                                 <TextBlock 
-                                    Text="{Binding Title}" FontWeight="Bold" FontSize="16" 
+                                    Text="{Binding Title}" FontWeight="Bold" FontSize="18" 
                                 />
-                                <ContentControl Content="{Binding}">
+                                <ContentControl Content="{Binding}" IsTabStop="False">
                                     <ContentControl.Style>
                                         <Style TargetType="ContentControl">
                                             <Style.Triggers>
@@ -137,7 +136,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <Button 
-                Width="72" Height="39" Padding="8" Margin="32 16" 
+                Width="72" Height="39" Padding="8" Margin="16" 
                 HorizontalAlignment="Right"
                 Content="送信"
                 Command="{Binding SendDailyReport}"
@@ -145,4 +144,5 @@
             </StackPanel>
         </Grid>
     </ScrollViewer>
+
 </Window>

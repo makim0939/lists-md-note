@@ -13,7 +13,7 @@ class ReportField
     public List<string> Choices { get; set; } = [];
 }
 
-namespace WriteNippoLocally.Model
+namespace NippoWriter.Model
 {
     class DailyReportModel
     {
@@ -24,5 +24,20 @@ namespace WriteNippoLocally.Model
         public bool IsSubmitted { get; set; }=false;
         public DailyReportModel()
         { }
+
+        public string? GetContentByFieldTitle(string title)
+        {
+            string? content = null;
+            foreach(ReportField field in this.Fields)
+            {
+                if (field.Title == title)
+                {
+                    content = field.Content;
+                    break;
+                }
+            }
+
+            return content;
+        }
     }
 }

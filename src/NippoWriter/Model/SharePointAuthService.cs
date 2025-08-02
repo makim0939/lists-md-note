@@ -3,7 +3,7 @@ using Microsoft.SharePoint.Client;
 using PnP.Framework;
 using PnP.PowerShell.Commands.Utilities;
 
-namespace WriteNippoLocally.Model
+namespace NippoWriter.Model
 {
     internal class SharePointAuthService
     {
@@ -30,21 +30,26 @@ namespace WriteNippoLocally.Model
                 ClientSecret = clientSecret;
             }
         }
-
         public SharePointAuthService() { }
 
-        // 
-        // Microsoft EntraIDでのアプリ登録不要
-        // 環境によっては使えない。
+        /// <summary>
+        ///  EntraIDでのアプリ登録不要の認証方法でClientContext取得
+        /// </summary>
+        /// <param name="siteUrl">SPOサイトのURL</param>
+        /// <returns name="context">認証されたClientContext</returns>
         public static ClientContext ExecuteAuth(string siteUrl)
         {
             ClientContext context = BrowserHelper.GetWebLoginClientContext(siteUrl, true);
             return context;
         }
-        
-        // DeviceCode認証
-        // Microsoft EntraIDでのアプリ登録必須
-        public static async Task<ClientContext> ExecuteDeviceCodeAuth(string siteUrl)
+
+        /// <summary>
+        /// 認可コードフローで認証されたClientContext取得
+        /// EntraIDでのアプリ登録必須
+        /// </summary>
+        /// <param name="siteUrl">SPOサイトのURL</param>
+        /// <returns name="context">認証されたClientContext</returns>
+        public static async Task<ClientContext> GetContextByAuthCodeGrant(string siteUrl)
         {
             var credentials = new Credentials();
             var authManager = new AuthenticationManager(credentials.ClientId, "http://localhost", credentials.TenantId);

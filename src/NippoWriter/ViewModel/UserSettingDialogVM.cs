@@ -1,14 +1,32 @@
-﻿using System.IO;
-using System.Text.Json;
-using WriteNippoLocally.Model;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
+using NippoWriter.Model;
 
-namespace WriteNippoLocally.ViewModel
+namespace NippoWriter.ViewModel
 {
-    class InitSettingDialogVM : INotifyPropertyChanged
+    internal class UserSettingDialogVM : INotifyPropertyChanged
     {
-        public string SiteUrl { get; set; }
+        private string _dialogTitle;
+        public string DialogTitle
+        {
+            get { return _dialogTitle; }
+            set 
+            {
+                _dialogTitle = value;
+                OnPropertyChanged();
+            }
+        }
+        private string _siteUrl;
+        public string SiteUrl
+        {
+            get { return _siteUrl; }
+            set
+            {
+                _siteUrl = value;
+                OnPropertyChanged();
+            }
+        }
         private string _destDirectory;
         public string DestDirectory
         {
@@ -19,45 +37,69 @@ namespace WriteNippoLocally.ViewModel
                 OnPropertyChanged();
             }
         }
+        private string _fileNameFormat;
+        public string FileNameFormat
+        {
+            get { return _fileNameFormat; }
+            set
+            {
+                _fileNameFormat = value;
+                OnPropertyChanged();
+            }
+        }
 
         public DelegateCommand SelectFolder { get; set; }
         public DelegateCommand StoreSettings { get; set; }
 
-        public InitSettingDialogVM()
+        public event Action? RequestClose;
+
+        public UserSettingDialogVM()
         {
             UserSettings settings = UserSettings.GetUserSettings();
-            this.SiteUrl = settings.SiteUrl;
-            this.DestDirectory = settings.DestDirectory;
+            // サイトURLが設定ファイルになかったら初期設定
+            if (settings.SiteUrl == string.Empty)
+            {
+                _dialogTitle = "初期設定";
+            }
+            else
+            {
+                _dialogTitle = "ユーザ設定";
+            }
+
+            _siteUrl = settings.SiteUrl;
+            _destDirectory = settings.DestDirectory;
+            _fileNameFormat = settings.FileNameFormat;
 
             SelectFolder = new DelegateCommand(SelectFolderExecute);
             StoreSettings = new DelegateCommand(StoreSettingsExecute, StoreSettingsCanExecute);
         }
 
-        public event Action RequestClose;
+        // 設定を保存
         public void StoreSettingsExecute()
         {
-            // 設定を保存
             UserSettings settings = new UserSettings()
             {
-                SiteUrl = this.SiteUrl,
-                DestDirectory = this.DestDirectory
+                SiteUrl = SiteUrl,
+                DestDirectory = DestDirectory,
+                FileNameFormat = FileNameFormat,
             };
             settings.StoreUserSettings();
 
             RequestClose?.Invoke();
         }
+
         private bool StoreSettingsCanExecute()
         {
             bool canExecute = true;
             // 入力が不正の場合はExecute実行不可
             // サイトURLが正しいURLか
-            if (this.SiteUrl == null)
+            if (SiteUrl == null)
             {
                 canExecute = false;
             }
             else
             {
-                bool isValidUri = Uri.TryCreate(this.SiteUrl, UriKind.Absolute, out Uri? uriResult);
+                bool isValidUri = Uri.TryCreate(SiteUrl, UriKind.Absolute, out Uri? uriResult);
                 if (!isValidUri) canExecute = false;
                 else if (uriResult == null) canExecute = false;
                 else if (!(uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
@@ -65,15 +107,31 @@ namespace WriteNippoLocally.ViewModel
                     canExecute = false;
                 }
 
-                if (!(this.SiteUrl.Contains("sharepoint") && this.SiteUrl.Contains("Lists")))
+                if (!(SiteUrl.Contains("sharepoint") && SiteUrl.Contains("Lists")))
                 {
                     canExecute = false;
                 }
             }
-            
+
             // 存在するディレクトリか
-            bool isFolder = Directory.Exists(this.DestDirectory);
+            bool isFolder = Directory.Exists(DestDirectory);
             if (!isFolder) canExecute = false;
+
+            // ファイル名の形式が正しいか
+            // 使用不可
+            if (FileNameFormat.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                canExecute = false;
+            }
+            // ファイル名のフォーマットに年月日は必須とする
+            if (
+                !(FileNameFormat.Contains("YYYY")
+                && FileNameFormat.Contains("MM")
+                && FileNameFormat.Contains("DD"))
+              )
+            {
+                canExecute = false;
+            }
 
             return canExecute;
         }
@@ -82,7 +140,6 @@ namespace WriteNippoLocally.ViewModel
         {
             DestDirectory = ShowSelectFolderDialog();
         }
-
         public string ShowSelectFolderDialog()
         {
             FolderBrowserDialog dialog = new()

@@ -1,6 +1,6 @@
 ﻿using Microsoft.SharePoint.Client;
 
-namespace WriteNippoLocally.Model
+namespace NippoWriter.Model
 {
     // SharePointへの接続、リストの取得・送信を行う。
     class SharePointListsService
@@ -10,6 +10,36 @@ namespace WriteNippoLocally.Model
         private List TargetList { get; set; }
         private Microsoft.SharePoint.Client.View TargetView { get; set; }
 
+        public SharePointListsService()
+        {
+            UserSettings userSettings = UserSettings.GetUserSettings();
+            Context = SharePointAuthService.ExecuteAuth(userSettings.GetSharePointUrl());
+
+            // ユーザを取得
+            User loginUser = Context.Web.CurrentUser;
+            Context.Load(loginUser);
+            Context.ExecuteQuery();
+
+            // リストを取得
+            List list = Context.Web.GetList(userSettings.GetSitePath());
+            Context.Load(list);
+            Context.ExecuteQuery();
+
+            //viewIdを取得
+            string? viewId = userSettings.GetViewId();
+
+            // ビューを取得
+            ViewCollection views = list.Views;
+            Context.Load(views);
+            Context.ExecuteQuery();
+            Microsoft.SharePoint.Client.View view = viewId != null ? views.GetById(Guid.Parse(viewId)) : views[0];
+
+            LoginUser = loginUser;
+            TargetList = list;
+            TargetView = view;
+        }
+
+        // 非同期初期化用のコンストラクタ
         private SharePointListsService(ClientContext context)
         {
             Context = context;
@@ -26,7 +56,6 @@ namespace WriteNippoLocally.Model
             Context.Load(list);
             Context.ExecuteQuery();
 
-            
             //viewIdを取得
             string? viewId = settings.GetViewId();
 
@@ -39,16 +68,15 @@ namespace WriteNippoLocally.Model
             LoginUser = loginUser;
             TargetList = list;
             TargetView = view;
-
         }
 
+        
         // 非同期初期化
         // new SharePointListsService()の代わりにSharePointListsService.CreateAsync()でインスタンスを取得する
         public static async Task<SharePointListsService> CreateAsync()
         {
             UserSettings userSettings = UserSettings.GetUserSettings();
-            ClientContext context = await SharePointAuthService.ExecuteDeviceCodeAuth(userSettings.GetSharePointUrl());
-            //ClientContext context = SharePointAuthService.ExecuteAuth(userSettings.SiteUrl);
+            ClientContext context = await SharePointAuthService.GetContextByAuthCodeGrant(userSettings.GetSharePointUrl());
 
             var listsService = new SharePointListsService(context);
 
@@ -73,10 +101,10 @@ namespace WriteNippoLocally.Model
             {
                 Field field = fields.GetFieldByInternalName(viewField);
                 ReportField reportField = new();
-                if (field.Title == "登録者" || field.Title == "日付")
-                {
-                    continue;
-                }
+
+                // 不要なフィールドは除く
+                if (field.Title == "登録者" || field.InternalName == "Author" || field.InternalName == "author") continue;
+                if (field.Title == "日付" || field.InternalName == "Date" || field.InternalName == "date") continue;
 
                 if (field.TypeAsString == "DateTime")
                 {
@@ -172,6 +200,7 @@ namespace WriteNippoLocally.Model
         // 追加したアイテムのIdを戻り値とする
         public int Send(DailyReportModel report)
         {
+            int id = -1;
             // 既存のアイテムを取得または新規作成
             ListItem item;
             if (report.Id == null)
@@ -189,14 +218,23 @@ namespace WriteNippoLocally.Model
             {
                 item[field.InternalName] = field.Content;
             }
-            item.Update();
-            Context.ExecuteQuery();
 
+            try 
+            {
+                item.Update();
+                Context.ExecuteQuery();
 
-            Context.Load(item);
-            Context.ExecuteQuery();
+                Context.Load(item);
+                Context.ExecuteQuery();
 
-            return item.Id;
+                id = item.Id;
+            }
+            catch
+            {
+                id = -1;
+            }
+
+            return id;
         }
 
         // クエリに該当する中で1番目のアイテムを取得する
@@ -233,7 +271,8 @@ namespace WriteNippoLocally.Model
                 string displayName = field.Title;
 
                 // 不要なフィールドは除く
-                if (displayName == "登録者") continue;
+                if (displayName == "登録者" || internalFieldName == "Author" || internalFieldName == "author") continue;
+                if (displayName == "日付" || internalFieldName == "Date" || internalFieldName == "date") continue;      
 
                 // フィールドのタイプを取得
                 string type = field.TypeAsString;
