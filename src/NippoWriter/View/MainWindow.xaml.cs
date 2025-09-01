@@ -19,7 +19,7 @@ namespace NippoWriter
         {
             MainWindowVM vm = (MainWindowVM)DataContext;
             if (vm == null) return;
-            await vm.InitializeAsync();
+            vm.Initialize();
         }
 
         // MainWindowのActivatedイベントハンドラ

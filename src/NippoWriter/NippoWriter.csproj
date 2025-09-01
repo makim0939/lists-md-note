@@ -19,6 +19,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Model\SharePointListsService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resource\LeftArrow.png" />
     <None Remove="Resource\RightArrow.png" />
     <None Remove="Resource\Settings.png" />

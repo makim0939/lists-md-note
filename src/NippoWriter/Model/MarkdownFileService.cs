@@ -122,19 +122,22 @@ namespace NippoWriter.Model
             string heading = string.Empty;
             foreach (string line in lines)
             {
-                if (line.StartsWith("##"))
+                if (line.StartsWith("## "))
                 {
-                    heading = line.Replace("#", "").Replace(" ", "");
+                    bool foundSection = false;
+                    string currentHeading = line.Replace("#", "").Replace(" ", "");
                     // セクションを初期化
                     report.Fields.ForEach(
                     section =>
                     {
-                        if (section.Title == heading)
+                        if (section.Title == currentHeading)
                         {
                             section.Content = string.Empty;
+                            foundSection = true;
+                            heading = currentHeading;
                         }
                     });
-                    continue;
+                    if (foundSection) continue;
                 }
 
                 report.Fields.ForEach(

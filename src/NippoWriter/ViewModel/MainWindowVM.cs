@@ -278,7 +278,7 @@ namespace NippoWriter.ViewModel
         }
 
         /// <summary>
-        /// データ変更通知ようの汎用メソッド
+        /// データ変更通知用の汎用メソッド
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
